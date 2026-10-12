@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/calendar-agent-assets/favicon.png">
+
+  <title>Calendar Agent  — AI Calendar Copilot</title>
+  <meta name="description" content="Calendar Agent is your AI-powered calendar copilot. Schedule events, find free slots, and manage your time with natural language.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 70s Editorial Typography: Fraunces + Space Grotesk + Space Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600..900;1,9..144,600..900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+</head>
+
+<body>
+  <!-- Animated GPU Background Drift Layer -->
+  <div class="bg-animated-layer" aria-hidden="true"></div>
+
+  <!-- ============ RETRO DESK RIBBON (HEADER) ============ -->
+  <header class="desk-ribbon">
+    <!-- Brand -->
+    <div class="ribbon-brand">
+      <div class="animated-logo-badge" title="Calendar Agent">
+        <img src="/calendar-agent-assets/favicon.png" class="navbar-logo-img" alt="Calendar Agent Logo">
+      </div>
+      <div class="brand-info">
+        <span class="brand-title">Calendar Agent</span>
+        <span class="brand-tagline">Beta - version</span>
+      </div>
+    </div>
+
+    <!-- Center Clock Ticker -->
+    <div class="desk-ticker" id="desk-ticker">
+      <span id="ticker-date">Loading date…</span>
+      <span class="ticker-divider">•</span>
+      <span id="ticker-time" class="ticker-time">--:--:--</span>
+    </div>
+
+    <!-- Tools & GitHub -->
+    <div class="ribbon-tools">
+      <a href="https://github.com/ma-eswar/calendar-agent" target="_blank" rel="noopener noreferrer" class="btn-tool btn-github" title="Star & Fork on GitHub">
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        <span class="github-label">ma-eswar/calendar-agent</span>
+      </a>
+
+      <button class="btn-tool" id="export-btn" title="Download .ics Calendar File">
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span class="btn-label-text">Export .ics</span>
+      </button>
+
+      <div class="live-pill" title="Server Synchronized">
+        <div class="live-dot"></div>
+        <span class="live-text">Live &amp; Syncing</span>
+      </div>
+
+      <button class="btn-dial" id="open-settings-btn" title="Model &amp; Provider Settings">
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ MAIN CONTAINER ============ -->
+  <div class="app-container">
+
+    <!-- LEFT: CHAT COPILOT -->
+    <div class="chat-panel">
+      <div id="chat-box">
+        <div class="bot-welcome-card">
+          <div class="bot-avatar-wrap">
+            <img src="/calendar-agent-assets/calendar-agent.png" alt="Calendar Copilot" class="agent-pfp-img">
+          </div>
+          <div class="bot-welcome-text" style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3>Calendar Copilot</h3>
+              <button id="clear-chat-btn" class="btn-clear-ghost" title="Clear Conversation Memory">
+                Clear Chat
+              </button>
+            </div>
+            <p>Tell me anything in natural language — I'll check overlaps, find free slots, and manage your events smoothly.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Chips -->
+      <div class="quick-chips-bar">
+        <button class="retro-chip" onclick="quickAction('What events do I have scheduled for this week?')">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          This week
+        </button>
+        <button class="retro-chip" onclick="quickAction('Find a free slot today')">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Free slots
+        </button>
+        <button class="retro-chip" onclick="quickAction('Schedule a quick 30-minute meeting')">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Quick meeting
+        </button>
+        <button class="retro-chip" onclick="quickAction('Check for any conflicts in my calendar')">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Conflicts
+        </button>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="chat-input-bar">
+        <div class="input-field-wrap">
+          <input type="text" id="user-input" placeholder="e.g. Schedule design review with Priya tomorrow at 2 PM…" autofocus />
+        </div>
+        <button class="send-circle-btn" id="send-btn" title="Send message">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: CALENDAR PANEL -->
+    <div class="calendar-panel">
+      <!-- Top Bar without month/day/week tabs -->
+      <div class="cal-top-bar">
+        <div class="cal-title-nav">
+          <button class="nav-arrow-btn" id="prev-month-btn" title="Previous Month">‹</button>
+          <button class="nav-arrow-btn" id="next-month-btn" title="Next Month">›</button>
+          <h2 class="cal-heading" id="cal-month-label">October 2026</h2>
+          <button class="btn-today-pill" id="today-btn">Today</button>
+        </div>
+      </div>
+
+      <!-- Grid with landscape.png anchored at bottom -->
+      <div class="grid-container">
+        <div class="dow-row">
+          <div class="dow-cell">Sun</div>
+          <div class="dow-cell">Mon</div>
+          <div class="dow-cell">Tue</div>
+          <div class="dow-cell">Wed</div>
+          <div class="dow-cell">Thu</div>
+          <div class="dow-cell">Fri</div>
+          <div class="dow-cell">Sat</div>
+        </div>
+        <div class="cells-grid" id="calendar-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DAY AGENDA DRAWER ============ -->
+  <div id="day-drawer">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div>
+          <h3 class="drawer-title" id="drawer-date-title">Date Agenda</h3>
+          <p class="drawer-subtitle" id="drawer-event-count">0 events scheduled</p>
+        </div>
+        <button class="drawer-close" id="drawer-close-btn">✕</button>
+      </div>
+      <div id="drawer-events-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <div id="setup-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">AI Model Setup</h2>
+        <button class="modal-close" id="close-modal-btn">✕</button>
+      </div>
+      <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 16px;">Configure your LLM provider and verify connectivity.</p>
+
+      <div class="modal-field">
+        <label class="modal-label">Provider</label>
+        <select id="modal-provider" class="modal-input">
+          <option value="groq">Groq (Free &amp; Fast)</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="custom">Custom / Ollama</option>
+        </select>
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">API Key</label>
+        <input type="password" id="modal-api-key" class="modal-input" placeholder="Re-enter API key to test or change providers" />
+        <p style="font-size: 11px; color: var(--text-muted);" id="provider-key-hint"></p>
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">Model</label>
+        <select id="modal-model-select" class="modal-input"></select>
+        <input type="text" id="modal-custom-model" class="modal-input" placeholder="Type model ID…" style="display: none; margin-top: 6px;" />
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">API Base URL</label>
+        <input type="text" id="modal-base-url" class="modal-input" value="https://api.groq.com/openai/v1" />
+      </div>
+
+      <button id="test-connection-btn" type="button" class="btn-tool" style="justify-content: center; width: 100%; border-radius: 12px; margin-bottom: 10px; padding: 10px;">
+        ⚡ Test Connection
+      </button>
+
+      <div id="test-status-banner" style="display: none; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 12px;"></div>
+
+      <button id="save-config-btn" class="btn-primary">Save &amp; Connect</button>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "launch-v1",
+    "title": "Ship Calendar Agent beta 🚀",
+    "startTime": "2026-10-13T00:14:00+05:30",
+    "endTime": "2026-10-13T01:14:00+05:30",
+    "location": "GitHub Open Source",
+    "notes": "Built with passion by Maheswar (ma-eswar). The local-first AI calendar copilot is live!"
+  },
+  {
+    "id": "deep-work-session",
+    "title": "Deep Work & Architecture",
+    "startTime": "2026-10-11T14:00:00+05:30",
+    "endTime": "2026-10-11T18:00:00+05:30",
+    "location": "Local Workspace",
+    "notes": "Exploring autonomous agentic workflows and local-first software design."
+  }
+]
