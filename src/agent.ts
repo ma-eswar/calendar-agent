@@ -76,7 +76,7 @@ export let currentBaseUrl = process.env.LLM_BASE_URL || "https://api.groq.com/op
 export let currentModel = process.env.LLM_MODEL || "qwen/qwen-2.5-coder-32b";
 
 let client = new OpenAI({
-  apiKey: process.env.LLM_API_KEY || process.env.GROQ_API_KEY || "",
+  apiKey: getStoredApiKey() || "unconfigured-placeholder-key",
   baseURL: currentBaseUrl
 });
 
@@ -552,11 +552,12 @@ function buildSystemPrompt(tz: string): string {
     return `${wd} ${ymd}${tag}`;
   }).join("\n");
 
+  const lookback = now - 7 * 86400000; // Past 7 days so recent events aren't invisible
   const horizon = now + 30 * 86400000;
-  const upcoming = eventsStore
-    .filter(e => Date.parse(e.endTime) > now && Date.parse(e.startTime) < horizon)
+  const activeEvents = eventsStore
+    .filter(e => Date.parse(e.endTime) > lookback && Date.parse(e.startTime) < horizon)
     .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime))
-    .slice(0, 40)
+    .slice(0, 50)
     .map(e => {
       const extra = [e.location ? `at ${e.location}` : "", e.notes ? `notes: ${e.notes}` : ""].filter(Boolean).join("; ");
       return `- id=${e.id} | ${e.title} | ${fmtRange(Date.parse(e.startTime), Date.parse(e.endTime), tz)}${extra ? " | " + extra : ""}`;
@@ -569,11 +570,11 @@ NOW: ${fmtDate(now, tz)}, ${fmtTime(now, tz)} (${today}).
 The next 14 days (use this table for "tomorrow", "next Monday", "this Friday"; "next <weekday>" means the first such weekday after today):
 ${dateTable}
 
-UPCOMING EVENTS (next 30 days):
-${upcoming}
+ACTIVE & RECENT EVENTS (past 7 days to next 30 days):
+${activeEvents}
 
 HOW TO WORK
-1. Follow a fast 2-step flow:
+1. Follow a fast 2-step flow for creating events:
    - Step A: If the title, date, or start time is missing, ask for them.
    - Step B: Once you have the title, date, and time, ask ONE short question: "Any location or notes to add, or shall I book it now?"
    - Step C: Once the user provides notes/location OR says "no / book it", immediately call create_event.
@@ -583,12 +584,20 @@ HOW TO WORK
 5. If numbers like "29 and 30" or "on the 15th" are mentioned, treat them as dates of the current month (e.g. Oct 29 & 30), NOT future day offsets, unless the user specifically says "in X days from now".
 6. Ask a question only when essential information (title or date/time) is missing. Ask exactly one short question.
 7. To change an existing event (rename, move, add location/notes), use update_event with its id. Never create a duplicate event to modify one.
-8. For availability or "find a slot" requests, always call find_free_slots. Never calculate free time yourself.
-9. Send times to tools as local wall-clock time, YYYY-MM-DDTHH:MM:SS, with no timezone suffix.
-10. If a tool returns error "past", tell the user plainly that the time has passed and suggest the nearest future option.
-11. If a tool returns "conflict", name the conflicting event and offer the suggested windows. Do not claim anything was booked.
-12. Never say an event was booked, moved, or cancelled unless a tool returned ok:true in this turn. After a successful change, the app displays its own receipt.
-13. Keep titles clean, without duration or time words ("90-minute Deep Work session" becomes "Deep Work").
+8. DELETION & CANCELLATION SAFETY:
+   - When the user asks to delete, remove, or cancel an event (or multiple events):
+     a. Do NOT call 'delete_event' immediately.
+     b. First, identify and list the matching event(s) clearly with their title, date, and time.
+     c. Ask for explicit confirmation: "Are you sure you want me to delete this event?" (or "these events?").
+     d. Call 'delete_event' with the event id(s) ONLY after the user confirms (e.g. says "yes", "confirm", "delete them", "go ahead").
+     e. Once confirmed, execute all 'delete_event' tool calls for those events in the same turn.
+     f. If the user changes their mind or says "no / keep them", do NOT call 'delete_event'.
+9. For availability or "find a slot" requests, always call find_free_slots. Never calculate free time yourself.
+10. Send times to tools as local wall-clock time, YYYY-MM-DDTHH:MM:SS, with no timezone suffix.
+11. If a tool returns error "past", tell the user plainly that the time has passed and suggest the nearest future option.
+12. If a tool returns "conflict", name the conflicting event and offer the suggested windows. Do not claim anything was booked.
+13. Never say an event was booked, moved, or cancelled unless a tool returned ok:true in this turn. After a successful change, the app displays its own receipt.
+14. Keep titles clean, without duration or time words ("90-minute Deep Work session" becomes "Deep Work").
 
 PERSONALITY & BOUNDARIES
 - Warm, polite, and concise. You may exchange light greetings, quick pleasantries, and answer questions about your actions naturally.
@@ -625,6 +634,14 @@ function receipt(a: AgentAction, tz: string): string {
 }
 
 export async function chatWithAgent(userMessage: string, timeZone?: string) {
+  if (!isConfigured()) {
+    return {
+      reply: "⚠️ No AI provider configured yet. Please click the settings gear icon in the top right (or enter your API key) to get started!",
+      events: eventsStore,
+      actions: []
+    };
+  }
+
   const tz = safeTimeZone(timeZone);
 
   const activeMessages: OpenAI.ChatCompletionMessageParam[] = [
